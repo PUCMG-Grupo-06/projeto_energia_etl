@@ -1,0 +1,74 @@
+@startuml
+
+class RegiaoAdministrativa {
+    -id : long
+    +nome : String
+}
+
+class UnidadeFederativa {
+    -id : long
+    +nome : String
+    +sigla : String
+    +regiao : String
+}
+RegiaoAdministrativa -- UnidadeFederativa
+
+class TipoConsumidor {
+    -id : long
+    +nome : String
+    +residencial : bool
+}
+
+class Consumidor {
+    -id : long
+    +nome : String
+    +tipo_do_consumidor : TipoConsumidor
+    +unidade_federativa : UnidadeFederativa
+    +regiao : RegiaoAdministrativa
+    +total : int
+}
+
+TipoConsumidor -- Consumidor
+UnidadeFederativa -- Consumidor
+RegiaoAdministrativa -- Consumidor
+
+class Tarifa {
+    -id : long
+    +periodo_inicio : datetime
+    +periodo_fim : datetime
+    +unidade_federativa : UnidadeFederativa
+    +regiao : RegiaoAdministrativa
+    +valor : float
+}
+UnidadeFederativa -- Tarifa
+RegiaoAdministrativa -- Tarifa
+
+class Consumo {
+    -id : long
+    +consumidor : Consumidor
+    +consumo : float
+    +tarifa_aplicada : Tarifa
+    +periodo_inicio : datetime
+    +periodo_fim : datetime
+}
+Tarifa -- Consumo
+Consumidor -- Consumo
+
+class MatrizGeradora {
+    -id : long
+    +nome : String
+    +tipo_fonte : String
+}
+
+class ProducaoEnergia {
+    -id : long
+    +matriz : MatrizGeradora
+    +periodo_inicio : datetime
+    +periodo_fim : datetime
+    +energia_produzida : float
+    +unidade_federativa : UnidadeFederativa
+}
+MatrizGeradora -- ProducaoEnergia
+UnidadeFederativa -- ProducaoEnergia
+
+@enduml

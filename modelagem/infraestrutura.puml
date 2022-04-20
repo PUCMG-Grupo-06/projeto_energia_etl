@@ -1,0 +1,22 @@
+@startuml
+
+package "Servidor Aplicação" {
+    [Script Extração] - HTTP_1
+    [Script Análise] - HTTP_2
+}
+
+node "Tableau" {
+    [Visualizações] -- CONNECTOR_TABLEAU
+}
+
+database "MySql" {
+    [Base Agrupados] -- MySQL_INTERFACE
+    [Base Analíticos] -- MySQL_INTERFACE
+}
+
+MySQL_INTERFACE -- HTTP_1
+MySQL_INTERFACE - HTTP_2
+
+CONNECTOR_TABLEAU -- MySQL_INTERFACE
+
+@enduml
