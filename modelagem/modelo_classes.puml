@@ -1,4 +1,5 @@
 @startuml
+title "Diagrama de Classes para Dados Extraídos e Estruturados"
 
 class RegiaoAdministrativa {
     -id : long
@@ -9,7 +10,7 @@ class UnidadeFederativa {
     -id : long
     +nome : String
     +sigla : String
-    +regiao : String
+    +regiao : RegiaoAdministrativa
 }
 RegiaoAdministrativa -- UnidadeFederativa
 

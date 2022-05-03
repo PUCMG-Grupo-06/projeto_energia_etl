@@ -1,4 +1,5 @@
 @startuml
+title "Diagrama de Componentes para Infraestrutura"
 
 package "Servidor Aplicação" {
     [Script Extração] - HTTP_1

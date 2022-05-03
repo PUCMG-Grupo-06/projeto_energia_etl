@@ -1,4 +1,5 @@
 @startuml
+title "Modelo Relacional para Dados Extraídos e Estruturados"
 
 entity RegiaoAdministrativa {
     *id : bigint <<generated>>
@@ -9,7 +10,7 @@ entity UnidadeFederativa {
     *id : bigint <<generated>>
     *nome : varchar
     sigla : varchar
-    *regiao : bigint <<FK>>
+    *regiao_id : bigint <<FK>>
 }
 
 RegiaoAdministrativa ||--|{ UnidadeFederativa
@@ -29,9 +30,9 @@ entity MatrizGeradora {
 entity Consumidor {
     *id : int <<generated>>
     *nome : varchar
-    *tipo_do_consumidor : int <<FK>>
-    unidade_federativa : int <<FK>>
-    regiao : int <<FK>>
+    *tipo_do_consumidor_id : int <<FK>>
+    unidade_federativa_id : int <<FK>>
+    regiao_id : int <<FK>>
     *total : int
 }
 
@@ -43,8 +44,8 @@ entity Tarifa {
     *id : bigint <<generated>>
     *periodo_inicio : timestamp
     *periodo_fim : timestamp
-    unidade_federativa : int <<FK>>
-    regiao : int <<FK>>
+    unidade_federativa_id : int <<FK>>
+    regiao_id : int <<FK>>
     valor : decimal
 }
 
@@ -53,21 +54,23 @@ RegiaoAdministrativa }o--o{ Tarifa
 
 entity ProducaoEnergia {
     *id : bigint <<generated>>
-    *matriz : int <<FK>>
+    *matriz_id : int <<FK>>
     *periodo_inicio : timestamp
     *periodo_fim : timestamp
     *energia_produzida : float
-    *unidade_federativa : int <<FK>>
+    unidade_federativa_id : int <<FK>>
+    regiao_id : int <<FK>>
 }
 
-UnidadeFederativa ||--|{ ProducaoEnergia
+RegiaoAdministrativa |o--|{ ProducaoEnergia
+UnidadeFederativa |o--|{ ProducaoEnergia
 MatrizGeradora ||--o{ ProducaoEnergia
 
 entity Consumo {
     *id : bigint <<generated>>
-    *consumidor : int <<FK>>
+    *consumidor_id : int <<FK>>
     *consumo : float
-    tarifa_aplicada : int <<FK>>
+    tarifa_id : int <<FK>>
     *periodo_inicio : timestamp
     *periodo_fim : timestamp
 }
