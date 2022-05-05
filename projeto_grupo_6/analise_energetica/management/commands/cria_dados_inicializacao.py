@@ -7,4 +7,4 @@ class Command(BaseCommand):
     help = 'Inicializa banco com dados de regiões e unidades federativas'
 
     def handle(self, *args, **kwargs):
-        print('Inicializando base')
+        print('Inicializando base 123')
