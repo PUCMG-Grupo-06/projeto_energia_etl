@@ -29,26 +29,31 @@ class ProcessaDadosEmpreendimentosGeracao:
         return ano, mes
 
     def gera_relatorio(self, conteudo_csv):
+        contador_erros = 0
         for item in conteudo_csv:
             ano_corrente = item.data_base_inicio_contagem.year
             mes_corrente = item.data_base_inicio_contagem.month
 
+            if item.registro_com_erro:
+                contador_erros += 1
+                continue
+
             while True:
-                data_corrente = datetime(ano_corrente, mes_corrente, 1, 0, 0, 0)
                 if ano_corrente is None or mes_corrente is None:
                     break
 
+                data_corrente = datetime(ano_corrente, mes_corrente, 1, 0, 0, 0)
                 uf = item.uf_principal
                 combustivel = item.tipo_combustivel
 
                 if ano_corrente not in bd_producao:
-                    bd_producao[ano_corrente]
+                    bd_producao[ano_corrente] = dict()
                 if mes_corrente not in bd_producao[ano_corrente]:
                     bd_producao[ano_corrente][mes_corrente] = dict()
 
                 if item.uf_principal not in bd_producao[ano_corrente][mes_corrente]:
                     bd_producao[ano_corrente][mes_corrente][uf] = dict()
-                if combustivel not in bd_producao[ano][mes][uf]:
+                if combustivel not in bd_producao[ano_corrente][mes_corrente][uf]:
                     bd_producao[ano_corrente][mes_corrente][uf][combustivel] = None
 
                 if bd_producao[ano_corrente][mes_corrente][uf][combustivel] is None:
@@ -70,9 +75,14 @@ class ProcessaDadosEmpreendimentosGeracao:
                     continue
                 modelo_geracao = ModeloEmpreendimentosGeracao.from_linha_csv(linha)
                 modelo_geracao.processa()
-                conteudo_csv.append(modelo_geracao)
 
+                if modelo_geracao.fase_atual_agente_gerador == 'Operação':
+                    # Só contabilizo as usinas em operação
+                    conteudo_csv.append(modelo_geracao)
+
+        print('Gerando o relatório pra importar no banco')
         self.gera_relatorio(conteudo_csv)
+        print(bd_producao)
 
 
 if __name__ == '__main__':

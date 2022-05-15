@@ -60,6 +60,7 @@ class ProducaoMensal:
 class ModeloEmpreendimentosGeracao:
     data_geracao_dados = None
     data_base_inicio_contagem = None
+    registro_com_erro = False
 
     def __init__(self, data_geracao_dados_str, nome_agente_gerador, nucleo_codigo_unico_agente_gerador,
                  codigo_unico_agente_gerador, uf_principal, tipo_geracao, fase_atual_agente_gerador,
@@ -94,7 +95,7 @@ class ModeloEmpreendimentosGeracao:
 
     @classmethod
     def from_linha_csv(cls, linha):
-        setlocale(LC_ALL, 'pt_BR.UTF-8')
+        # setlocale(LC_ALL, 'pt_BR.UTF-8')
         return ModeloEmpreendimentosGeracao(
             data_geracao_dados_str=linha[0],
             nome_agente_gerador=linha[1],
@@ -129,6 +130,17 @@ class ModeloEmpreendimentosGeracao:
             minute=0,
             second=0)
 
+    def _trata_numero(self, numero):
+        result = None
+        if numero == '' or numero is None:
+            result = 0
+        if isinstance(numero, str) and ',' in numero:
+            result = numero.replace(',', '.')
+            result = float(result)
+        else:
+            result = float(numero)
+        return result
+
     def processa(self):
         data_base_inicio = datetime(1960, 1, 1, 0, 0, 0)
         lst_data_geracao_dados = self.data_geracao_dados_str.split('-')
@@ -138,7 +150,7 @@ class ModeloEmpreendimentosGeracao:
         if self.inicio_vigencia_outorga == '':
             self.inicio_vigencia_outorga = None
         if self.fim_vigencia_outorga == '':
-            self.fim_vigencia_outorga == None
+            self.fim_vigencia_outorga = None
         if self.data_comeco_operacao  == '':
             self.data_comeco_operacao = None
 
@@ -151,13 +163,27 @@ class ModeloEmpreendimentosGeracao:
             self.data_comeco_operacao = self._processa_data(self.data_comeco_operacao)
         elif self.data_comeco_operacao is None and self.inicio_vigencia_outorga is not None:
             self.data_comeco_operacao = self.inicio_vigencia_outorga
+        elif self.data_comeco_operacao is None and self.inicio_vigencia_outorga is None:
+            # Se não tem data de começo de operação nem de início de outorga, marco o
+            # registro como com erro
+            self.registro_com_erro = True
         else:
-            self.data_comeco_operacao = data_base_inicio
+            # Qualquer outro caso trato como erro também
+            self.registro_com_erro = True
 
         if self.data_comeco_operacao < data_base_inicio and self.inicio_vigencia_outorga is not None:
-            if self.inicio_vigencia_outorga < data_base_inicio:
+            if self.inicio_vigencia_outorga <= data_base_inicio:
                 self.data_base_inicio_contagem = data_base_inicio
-            if self.inicio_vigencia_outorga > data_base_inicio:
+            else:
                 self.data_base_inicio_contagem = self.inicio_vigencia_outorga
         elif self.data_comeco_operacao < data_base_inicio and self.inicio_vigencia_outorga is None:
-            self.data_base_comeco_operacao = data_base_inicio
+            # Para o caso da data de começo de operação estar incorreta (ou muito antiga) e
+            # a data de início de vigência estiver nula, bato a data base inicial como
+            # ponto de partida
+            self.data_base_inicio_contagem = data_base_inicio
+        elif self.data_comeco_operacao >= data_base_inicio:
+            self.data_base_inicio_contagem = self.data_comeco_operacao
+
+        self.potencia_operacao = self._trata_numero(self.potencia_operacao)
+        self.latitude_agente_gerador = self._trata_numero(self.latitude_agente_gerador)
+        self.longitude_agente_gerador = self._trata_numero(self.longitude_agente_gerador)
