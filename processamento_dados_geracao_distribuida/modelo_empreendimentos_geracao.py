@@ -56,6 +56,15 @@ class ProducaoMensal:
             'tipo_combustivel': self.tipo_combustivel,
             'energia_produzida': self.energia_produzida}
 
+    def __eq__(self, other):
+        return self.ano == other.ano and self.mes == other.mes \
+               and self.uf == other.uf and self.energia_produzida == other.energia_produzida
+
+    def __lt__(self, other):
+        dt_1 = datetime(self.ano, self.mes, 1, 0, 0, 0)
+        dt_2 = datetime(other.ano, other.mes, 1, 0, 0, 0)
+        return dt_1 < dt.2
+
 
 class ModeloEmpreendimentosGeracao:
     data_geracao_dados = None
@@ -171,19 +180,25 @@ class ModeloEmpreendimentosGeracao:
             # Qualquer outro caso trato como erro também
             self.registro_com_erro = True
 
-        if self.data_comeco_operacao < data_base_inicio and self.inicio_vigencia_outorga is not None:
-            if self.inicio_vigencia_outorga <= data_base_inicio:
+        if not self.registro_com_erro:
+            if self.data_comeco_operacao < data_base_inicio and self.inicio_vigencia_outorga is not None:
+                if self.inicio_vigencia_outorga <= data_base_inicio:
+                    self.data_base_inicio_contagem = data_base_inicio
+                else:
+                    self.data_base_inicio_contagem = self.inicio_vigencia_outorga
+            elif self.data_comeco_operacao < data_base_inicio and self.inicio_vigencia_outorga is None:
+                # Para o caso da data de começo de operação estar incorreta (ou muito antiga) e
+                # a data de início de vigência estiver nula, bato a data base inicial como
+                # ponto de partida
                 self.data_base_inicio_contagem = data_base_inicio
-            else:
-                self.data_base_inicio_contagem = self.inicio_vigencia_outorga
-        elif self.data_comeco_operacao < data_base_inicio and self.inicio_vigencia_outorga is None:
-            # Para o caso da data de começo de operação estar incorreta (ou muito antiga) e
-            # a data de início de vigência estiver nula, bato a data base inicial como
-            # ponto de partida
-            self.data_base_inicio_contagem = data_base_inicio
-        elif self.data_comeco_operacao >= data_base_inicio:
-            self.data_base_inicio_contagem = self.data_comeco_operacao
+            elif self.data_comeco_operacao >= data_base_inicio:
+                self.data_base_inicio_contagem = self.data_comeco_operacao
 
-        self.potencia_operacao = self._trata_numero(self.potencia_operacao)
-        self.latitude_agente_gerador = self._trata_numero(self.latitude_agente_gerador)
-        self.longitude_agente_gerador = self._trata_numero(self.longitude_agente_gerador)
+            self.potencia_operacao = self._trata_numero(self.potencia_operacao)
+            self.latitude_agente_gerador = self._trata_numero(self.latitude_agente_gerador)
+            self.longitude_agente_gerador = self._trata_numero(self.longitude_agente_gerador)
+
+    def to_pandas(self):
+        return {
+            'tem_erro': self.registro_com_erro
+        }
