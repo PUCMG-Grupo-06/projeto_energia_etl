@@ -38,32 +38,40 @@ import locale
 
 
 class ProducaoMensal:
-    def __init__(self, mes, ano, uf, tipo_combustivel, energia_produzida):
-        self.mes = mes
-        self.ano = ano
-        self.uf = uf
-        self.tipo_combustivel = tipo_combustivel
-        self.energia_produzida = energia_produzida
+    def __init__(self, mes: int, ano: int,
+                 data_referencia: date,
+                 uf: str, tipo_combustivel: str, energia_produzida: str):
+        self.mes: int = mes
+        self.ano: int = ano
+        self.data_referencia: date = data_referencia
+        self.uf: str = uf
+        self.tipo_combustivel: str = tipo_combustivel
+        self.energia_produzida: str = energia_produzida
+
+        if self.data_referencia.year != self.ano or self.data_referencia.month != self.mes:
+            # Apenas uma correção na inicialização da classe
+            self.data_referencia = datetime(self.ano, self.mes, 1, 0, 0, 0).date()
 
     def to_csv(self):
-        return [self.ano, self.mes, self.uf, self.tipo_combustivel, self.energia_produzida]
+        return [self.ano, self.mes, str(self.data_referencia),
+                self.uf, self.tipo_combustivel, self.energia_produzida]
 
     def to_pandas(self):
         return {
             'ano': self.ano,
             'mes': self.mes,
+            'data_referencia': self.data_referencia,
             'uf': self.uf,
             'tipo_combustivel': self.tipo_combustivel,
             'energia_produzida': self.energia_produzida}
 
     def __eq__(self, other):
         return self.ano == other.ano and self.mes == other.mes \
+               and self.data_referencia == other.data_referencia \
                and self.uf == other.uf and self.energia_produzida == other.energia_produzida
 
     def __lt__(self, other):
-        dt_1 = datetime(self.ano, self.mes, 1, 0, 0, 0)
-        dt_2 = datetime(other.ano, other.mes, 1, 0, 0, 0)
-        return dt_1 < dt.2
+        return self.data_referencia < other.data_referencia
 
 
 class ModeloEmpreendimentosGeracao:
@@ -101,6 +109,28 @@ class ModeloEmpreendimentosGeracao:
         self.percentual_participacao_propriedade_regime = percentual_participacao_propriedade_regime
         self.sub_bacia_hidreletrica = sub_bacia_hidreletrica
         self.municipio_estado = municipio_estado
+
+    mapa_caracteres_especiais = {
+        'á': 'a',
+        'à': 'a',
+        'ã': 'a',
+        'ç': 'c',
+        'é': 'e',
+        'ê': 'e',
+        'ê': 'e',
+        'í': 'i',
+        'î': 'i',
+        'ó': 'o',
+        'õ': 'o',
+        'ô': 'o',
+        'ú': 'u'
+    }
+
+    def _trata_caracteres_especiais(self, texto):
+        for c in self.mapa_caracteres_especiais.keys():
+            if c in texto:
+                texto = texto.replace(c, mapa_caracteres_especiais[c])
+        return texto
 
     @classmethod
     def from_linha_csv(cls, linha):

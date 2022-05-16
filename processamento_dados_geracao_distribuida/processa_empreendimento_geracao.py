@@ -12,8 +12,8 @@ bd_sem_dict = []
 dt_inicio = datetime(1960, 1, 1, 0, 0, 0)
 dt_fim = datetime(2022, 4, 30, 0, 0, 0)
 
-csv_file_result = 'geracao_final.csv'
-sql_file_result = 'geracao_final.sql'
+csv_file_result = 'Consumo.csv'
+sql_file_result = 'Consumo.sql'
 
 
 class ProcessaDadosEmpreendimentosGeracao:
@@ -61,7 +61,13 @@ class ProcessaDadosEmpreendimentosGeracao:
                     bd_producao[ano_corrente][mes_corrente][uf][combustivel] = {'dados': None}
 
                 if bd_producao[ano_corrente][mes_corrente][uf][combustivel]['dados'] is None:
-                    pm = ProducaoMensal(mes_corrente, ano_corrente, uf, combustivel, item.potencia_operacao)
+                    data_referencia = datetime(ano_corrente, mes_corrente, 1, 0, 0, 0).date()
+                    pm = ProducaoMensal(
+                        mes=mes_corrente, ano=ano_corrente,
+                        data_referencia=data_referencia,
+                        uf=uf,
+                        tipo_combustivel=combustivel,
+                        energia_produzida=item.potencia_operacao)
                     bd_producao[ano_corrente][mes_corrente][uf][combustivel]['dados'] = pm
                 else:
                     bd_producao[ano_corrente][mes_corrente][uf][combustivel]['dados'].energia_produzida += \
@@ -81,41 +87,48 @@ class ProcessaDadosEmpreendimentosGeracao:
     def gera_sql(self):
         sequencia_sql = list()
         for item in bd_sem_dict:
-            query = f"INSERT INTO consumo(ano, mes, uf, tipo_combustivel, potencia_gerada) " \
-                    f"values({item.ano}, {item.mes}, '{item.uf}', " \
-                    f"'{item.tipo_combustivel}', '{item.energia_produzida}');"
+            query = f"INSERT INTO consumo(ano, mes, data_referencia, uf, tipo_combustivel, potencia_gerada) " \
+                    f"values({item.ano}, {item.mes}, '{str(item.data_referencia)}', " \
+                    f"'{item.uf}', '{item.tipo_combustivel}', {item.energia_produzida});"
             sequencia_sql.append(query)
 
         print(f'{len(sequencia_sql)} queries geradas')
         self.escreve_arquivo_sql(sequencia_sql)
 
-    def escreve_arquiv_csv(self):
-        if os.path.isfile(csv_file_final):
-            os.remove(csv_file_final)
-        header = ['ano', 'mes', 'uf', 'tipo_combustivel', 'potencia_gerada']
+    def escreve_arquivo_csv(self):
+        if os.path.isfile(csv_file_result):
+            os.remove(csv_file_result)
+        header = ['ano', 'mes', 'data_referencia', 'uf', 'tipo_combustivel', 'potencia_gerada']
 
-        with open(csv_file_final, 'w', encoding='utf-16') as f:
-            writer = csv.writer()
+        with open(csv_file_result, 'w', encoding='utf-16') as f:
+            writer = csv.writer(f)
             writer.writerow(header)
 
             rows = [x.to_csv() for x in bd_sem_dict]
             writer.writerows(rows)
 
     def escreve_arquivo_sql(self, sequencia_sql):
-        if os.path.isfile(sql_file_final):
-            os.remove(sql_file_final)
+        if os.path.isfile(sql_file_result):
+            os.remove(sql_file_result)
 
-        query_create_table = 'CREATE TABLE consumo(' \
-                             'consumo_id INT AUTO_INCREMENT PRIMARY KEY,' \
-                             'ano INT NOT NULL,' \
-                             'mes INT NOT NULL,' \
-                             'tipo_combustivel VARCHAR(120),' \
-                             'potencia_gerada double);'
+        query_create_database = 'create database if not exists projeto_energia;\n'
+        query_use_db = 'use projeto_energia;\n'
 
-        with open(sql_file_final, 'w', encoding='utf-16') as f:
+        query_create_table = 'create table if not exists consumo(' \
+                             'id int not null auto_increment primary key, ' \
+                             'ano int not null, ' \
+                             'mes int not null, ' \
+                             'data_referencia date not null, ' \
+                             'uf varchar(2) not null, ' \
+                             'tipo_combustivel varchar(120), ' \
+                             'potencia_gerada double);\n'
+
+        with open(sql_file_result, 'w', encoding='utf-16') as f:
+            f.write(query_create_database)
+            f.write(query_use_db)
             f.write(query_create_table)
             for sql in sequencia_sql:
-                f.write(sql)
+                f.write(f'{sql}\n')
 
     def executa(self):
         conteudo_csv = []
@@ -136,6 +149,7 @@ class ProcessaDadosEmpreendimentosGeracao:
         self.gera_relatorio(conteudo_csv)
         print(f'Total de erros: {self.contador_erros}')
         self.gera_sql()
+        self.escreve_arquivo_csv()
 
 
 if __name__ == '__main__':
