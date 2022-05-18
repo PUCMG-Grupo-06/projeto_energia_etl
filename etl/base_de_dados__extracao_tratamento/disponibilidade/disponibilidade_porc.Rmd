@@ -1,0 +1,59 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+
+---
+
+### Carregar todas os pacotes que serão utilizadas:
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(skimr)
+library(base)
+library(utils)
+library(readr)
+```
+
+### Carregar todos os arquivos de cada ano separado e concatena-los em um único Data Frame:
+
+```{r  warning=FALSE}
+disponibilidade <- list.files(path = "C:\\Users\\Sanderson\\Documents\\RStudio\\Projeto\\disponibilidade",pattern = "*.csv", full.names = TRUE ) %>% 
+  lapply(read.csv2) %>% 
+  bind_rows()
+```
+
+### Analisar tipo do dado de cada coluna:
+
+```{r warning=FALSE}
+str(disponibilidade)
+```
+
+### Converter tipode dado das colunas de acordo com o é fornecido pelo dicionário:
+
+* **dat_referencia** - char **para** date
+* **val_dispf**      - char **para** numeric
+* **val_indisppf**   - char **para** numeric
+* **val_indispff**   - char **para** numeric
+
+```{r warning=FALSE, echo=TRUE}
+disponibilidade$dat_referencia <- as.Date(disponibilidade$dat_referencia)
+disponibilidade$val_dispf <- as.numeric(disponibilidade$val_dispf)
+disponibilidade$val_indisppf <- as.numeric(disponibilidade$val_indisppf)
+disponibilidade$val_indispff <- as.numeric(disponibilidade$val_indispff)
+```
+
+### Analizar o comportamento dos dados e verificar a existência valores em branco:
+
+
+```{r }
+skim_without_charts(disponibilidade)
+```
+
+### Exportar o CSV:
+
+```{r}
+write_csv(disponibilidade, file = "disponibilidade.csv")
+
+```
+

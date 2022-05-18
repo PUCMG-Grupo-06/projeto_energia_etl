@@ -1,0 +1,66 @@
+---
+title: "Dados ONS da carga total no sistema"
+output:
+  word_document: default
+  html_notebook: default
+---
+Obs: Sudeste = Sudeste + centro-oeste
+
+### Carregar os pacotes que serão utilizados:
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(skimr)
+library(base)
+library(utils)
+library(readr)
+```
+
+
+### Carregar todos os arquivos de cada ano separado e concatena-los em um único Data Frame:
+
+```{r}
+carga_media_diaria <- list.files(path = "C:\\Users\\Sanderson\\Documents\\RStudio\\Projeto\\carga",pattern = "*.csv", full.names = TRUE ) %>% 
+  lapply(read.csv2) %>% 
+  bind_rows()
+```
+
+
+
+### Analisar o tipo dos dados de cada coluna:
+
+```{r}
+str(carga_media_diaria)
+```
+
+
+### Alterar o tipo das colunas (*din_instante* para data e *val_cargaenergiamwmed* para número):
+
+```{r}
+carga_media_diaria$val_cargaenergiamwmed <- as.numeric(carga_media_diaria$val_cargaenergiamwmed)
+carga_media_diaria$din_instante <- as.Date(carga_media_diaria$din_instante)
+```
+
+### Analisar o comportamento dos dados das colunas do data frame criado:
+
+```{r}
+skim_without_charts(carga_media_diaria)
+```
+# Eliminar todas as linhas sem dados:
+
+```{r}
+carga_media_diaria <- na.omit(carga_media_diaria)
+```
+
+### truncar os itens da coluna "val_cargaenergiamwmed" para somente 3 casas decimais:
+
+```{r}
+carga_media_diaria$val_cargaenergiamwmed <- round(carga_media_diaria$val_cargaenergiamwmed, digits = 3)
+```
+
+### Exportar CSV:
+
+```{r}
+write_csv(carga_media_diaria, file = "carga_media.csv")
+```
+
