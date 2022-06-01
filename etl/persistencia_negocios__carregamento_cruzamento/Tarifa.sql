@@ -13,7 +13,7 @@ CREATE TABLE SubGrupoTarifario(
 	codigo varchar(3) PRIMARY KEY,
     descricao varchar (40)
     );
-    
+
 LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/SubGrupo.csv'
 INTO TABLE SubGrupoTarifario
 FIELDS TERMINATED BY ','
@@ -26,7 +26,7 @@ CREATE TABLE Tarifa (
 	id int not null auto_increment,
 	mes	date,
 	nomeDistribuidora varchar(40),
-	cnpjDistribuidora numeric(14,0),
+	cnpjDistribuidora varchar(14),
 	dataInicioVigencia date,
 	dataFimVigencia date,
 	SubGrupo varchar(3),
