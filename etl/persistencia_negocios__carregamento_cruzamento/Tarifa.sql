@@ -1,6 +1,9 @@
 SET @@global.sql_mode= '';
 
-ALTER DATABASE projeto_energia CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+create database if not exists puc_projeto;
+use puc_projeto;
+
+ALTER DATABASE puc_projeto CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS Tarifa;
 DROP TABLE IF EXISTS SubGrupoTarifario;

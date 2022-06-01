@@ -1,5 +1,7 @@
 /* Deve ser o último algoritmo a ser executado depois de todos os outros SQL*/
 
+use puc_projeto;
+
 /* ATUALIZA TABELAS EXISTENTES PARA RECEBER A CHAVE EXTRANGEIRA DO MÊS*/
 ALTER TABLE disponibilidade RENAME COLUMN dat_referencia TO mes;
 
@@ -31,8 +33,8 @@ ADD CONSTRAINT FK_Consumo_Mes FOREIGN KEY (mes) REFERENCES Meses(mes);
 ALTER TABLE Disponibilidade
 ADD CONSTRAINT FK_Disp_Mes FOREIGN KEY (mes) REFERENCES Meses(mes);
 
-ALTER TABLE Carga_Media
-ADD CONSTRAINT FK_CargaMedia_Mes FOREIGN KEY (mes) REFERENCES Meses(mes);
-
 ALTER TABLE Geracao
 ADD CONSTRAINT FK_Geracao_Mes FOREIGN KEY (mes) REFERENCES Meses(mes);
+
+ALTER TABLE Carga_Media
+ADD CONSTRAINT FK_CargaMedia_Mes FOREIGN KEY (mes) REFERENCES Meses(mes);
