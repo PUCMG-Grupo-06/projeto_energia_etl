@@ -14,6 +14,7 @@ library(skimr)
 library(base)
 library(utils)
 library(readr)
+library(lubridate)
 ```
 
 
@@ -57,17 +58,24 @@ carga_media_diaria$din_instante <- make_date(year = year(carga_media_diaria$din_
 carga_media <- carga_media_diaria %>% group_by(id_subsistema,nom_subsistema,din_instante) %>% summarize(mean(val_cargaenergiamwmed))
 
 ```
+### remover coluna duplicada (is_subsistema = nom_subsistema):
+
+```{r}
+carga_media <- subset(carga_media, select = c(id_subsistema,din_instante, `mean(val_cargaenergiamwmed)`))
+```
+
+
 
 ### Alterar nomes das colunas:  nom_subsistema = subsistema ,din_instante = mes e mean(val_cargaenergiamwmed) = carga_mensal_MWmed
 
 ```{r}
 
-carga_media <- carga_media %>% rename(subsistema = nom_subsistema, mes = din_instante, carga_mensal_MWmed = `mean(val_cargaenergiamwmed)`)
+carga_media <- carga_media %>% rename(subsistema = id_subsistema, mes = din_instante, carga_mensal_MWmed = `mean(val_cargaenergiamwmed)`)
 
 ```
 
 
-### Analisar o comportamento dos dados contidos no data frame:
+### Analisar o comportamento dos dados contidos no data frame e buscar por dados em banco:
 
 ```{r}
 
