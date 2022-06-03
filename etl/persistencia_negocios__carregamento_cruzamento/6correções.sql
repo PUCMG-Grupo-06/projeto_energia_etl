@@ -18,7 +18,6 @@ update consumo set subsistema = 'Isolado' WHERE subsistema = 'Sistemas Isolados'
 
 
 
-update carga_media set subsistema = 'SE/CO' WHERE subsistema = 'SE';
 
 
 
