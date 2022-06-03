@@ -17,12 +17,9 @@ update consumo set subsistema = 'S' WHERE subsistema = 'Sul';
 update consumo set subsistema = 'Isolado' WHERE subsistema = 'Sistemas Isolados';
 
 
-ALTER TABLE carga_media 
-DROP COLUMN nom_subsistema,
-ADD COLUMN mes date; 
 
 update carga_media set subsistema = 'SE/CO' WHERE subsistema = 'SE';
-update carga_media set mes = STR_TO_DATE( CONCAT(CONVERT(DATE_FORMAT(din_instante,'%Y-%m'), CHAR),'-01'),'%Y-%m-%d'); -- remove o dia da data, substitui por 01, e inclui na coluna mes
-ALTER TABLE carga_media DROP COLUMN din_instante;
+
+
 
  
