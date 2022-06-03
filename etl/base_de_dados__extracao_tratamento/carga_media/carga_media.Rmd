@@ -10,12 +10,14 @@ output:
 #### 1 - Carregar os pacotes que serão utilizados:
 
 ```{r message=FALSE, warning=FALSE}
+
 library(dplyr)
 library(skimr)
 library(base)
 library(utils)
 library(readr)
 library(lubridate)
+
 ```
 
 
@@ -122,4 +124,4 @@ write_csv(carga_media, file = "carga_media.csv")
 ```
 
 
-###### Dados fornecidos pela Operador Nacional dos Sistema Eletrico (ONS) -  Acesso em: 28/04/2022
+###### Dados fornecidos pelo Operador Nacional dos Sistema Eletrico (ONS) -  Acesso em: 28/04/2022

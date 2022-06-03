@@ -3,7 +3,6 @@ Por enquanto ficam aqui.
  */
  use puc_projeto;
   
-ALTER TABLE disponibilidade RENAME COLUMN dat_referencia TO mes;
 
 DELETE FROM geracao WHERE ano < 2000;
 ALTER TABLE geracao DROP COLUMN ano;
