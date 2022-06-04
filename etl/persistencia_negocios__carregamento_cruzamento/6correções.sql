@@ -2,11 +2,6 @@
 Por enquanto ficam aqui.
  */
  use puc_projeto;
-  
-DELETE FROM geracao WHERE ano < 2000;
-ALTER TABLE geracao DROP COLUMN ano;
-ALTER TABLE geracao DROP COLUMN mes;
-ALTER TABLE geracao RENAME COLUMN data_referencia TO mes;
  
 update consumo set subsistema = 'N' WHERE subsistema = 'Norte Interligado';
 update consumo set subsistema = 'NE' WHERE subsistema = 'Nordeste';
