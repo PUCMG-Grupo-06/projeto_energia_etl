@@ -217,6 +217,7 @@ class BDGeracaoFonteEnergeticaMesUF:
             self.bd_fonte_energetica[record.ano][record.mes] = dict()
         if record.fonte_energia not in self.bd_fonte_energetica[record.ano][record.mes]:
             self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia] = {
+                'empresas_distintas': [],
                 'total_pago': 0.0,
                 'total_recebido': 0.0,
                 'total_energia_entregue': 0.0,
@@ -224,6 +225,100 @@ class BDGeracaoFonteEnergeticaMesUF:
                 'total_capacidade': 0,
                 'total_geracao_centro_gravidade': 0
             }
+
+        if record.razao_social not in self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['empresas_distintas']:
+            self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['empresas_distintas'].append(record.razao_social)
+
+    def exporta_ano_mes_uf_fonte_energia(self):
+        registros = []
+        cabecalho = ['data', 'uf', 'fonte_energia', 'total_pago', 'total_recebido',
+                     'total_energia_entregue', 'total_energia_recebida', 'total_capacidade',
+                     'total_geracao_centro_gravidade']
+
+        for ano in self.bd.keys():
+            for mes in self.bd[ano].keys():
+                for uf in self.bd[ano][mes].keys():
+                    for fonte_energia in self.bd[ano][mes][uf].keys():
+                        info = self.bd[ano][mes][uf][fonte_energia]
+                        dt = datetime(int(ano), int(mes), 1, 0, 0, 0).date()
+                        registro = [dt.strftime('%Y-%m-%d'), uf, fonte_energia,
+                                    info['total_pago'], info['total_recebido'],
+                                    info['total_energia_entregue'], info['total_energia_recebida'],
+                                    info['total_capacidade'], info['total_geracao_centro_gravidade']]
+                        registros.append(registro)
+
+        nome_arquivo = 'ano_mes_uf_fonte.csv'
+        contador_linha = 0
+        with open(nome_arquivo, 'w') as arquivo:
+            linha_cabecalho = ';'.join(cabecalho)
+            # print(linha_cabecalho, file=arquivo, end='')
+            arquivo.write(linha_cabecalho + '\n')
+            for linha in registros:
+                # Processando a linha antes
+                contador_item = 0
+                while contador_item < len(linha):
+                    if linha[contador_item] is None:
+                        linha[contador_item] = ''
+                    elif isinstance(linha[contador_item], float):
+                        linha[contador_item] = str(linha[contador_item])
+                    elif isinstance(linha[contador_item], int):
+                        linha[contador_item] = str(linha[contador_item])
+                    elif isinstance(linha[contador_item], bool):
+                        if linha[contador_item] is True:
+                            linha[contador_item] = 'V'
+                        else:
+                            linha[contador_item] = 'F'
+                    contador_item += 1
+                linha_str = ';'.join(linha)
+                # print(linha, file=arquivo, end='')
+                arquivo.write(linha_str + '\n')
+                contador_linha += 1
+        print(f'{contador_linha} linhas escritas no arquivo {nome_arquivo}')
+
+    def exporta_ano_mes_fonte_energia(self):
+        registros = []
+        cabecalho = ['data', 'fonte_energia', 'total_pago', 'total_recebido',
+                     'total_energia_entregue', 'total_energia_recebida', 'total_capacidade',
+                     'total_geracao_centro_gravidade']
+
+        for ano in self.bd_fonte_energetica.keys():
+            for mes in self.bd_fonte_energetica[ano].keys():
+                for fonte_energia in self.bd_fonte_energetica[ano][mes].keys():
+                    info = self.bd_fonte_energetica[ano][mes][fonte_energia]
+                    dt = datetime(int(ano), int(mes), 1, 0, 0, 0).date()
+                    registro = [dt.strftime('%Y-%m-%d'), fonte_energia, info['total_pago'],
+                                info['total_recebido'],
+                                info['total_energia_entregue'], info['total_energia_recebida'],
+                                info['total_capacidade'], info['total_geracao_centro_gravidade']]
+                    registros.append(registro)
+
+        nome_arquivo = 'ano_mes_fonte.csv'
+        contador_linha = 0
+        with open(nome_arquivo, 'w') as arquivo:
+            linha_cabecalho = ';'.join(cabecalho)
+            # print(linha_cabecalho, file=arquivo, end='')
+            arquivo.write(linha_cabecalho + '\n')
+            for linha in registros:
+                # Processando a linha antes
+                contador_item = 0
+                while contador_item < len(linha):
+                    if linha[contador_item] is None:
+                        linha[contador_item] = ''
+                    elif isinstance(linha[contador_item], float):
+                        linha[contador_item] = str(linha[contador_item])
+                    elif isinstance(linha[contador_item], int):
+                        linha[contador_item] = str(linha[contador_item])
+                    elif isinstance(linha[contador_item], bool):
+                        if linha[contador_item] is True:
+                            linha[contador_item] = 'V'
+                        else:
+                            linha[contador_item] = 'F'
+                    contador_item += 1
+                linha_str = ';'.join(linha)
+                # print(linha, file=arquivo, end='')
+                arquivo.write(linha_str + '\n')
+                contador_linha += 1
+        print(f'{contador_linha} linhas escritas no arquivo {nome_arquivo}')
 
 
 class BDGeracaoEmpresaMes:
