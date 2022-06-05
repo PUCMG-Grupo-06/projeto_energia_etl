@@ -68,12 +68,45 @@ class Relatorio:
         query_part_1 = f'INSERT INTO {self.nome_tabela} ()'
 
 
-class BDGeracaoMesUF:
+class BD_Base:
+    def __init__(self):
+        pass
+
+    def exporta(self, cabecalho, linhas, nome_arquivo):
+        contador_linha = 0
+        with open(nome_arquivo, 'w') as arquivo:
+            linha_cabecalho = ';'.join(cabecalho)
+            # print(linha_cabecalho, file=arquivo, end='')
+            arquivo.write(linha_cabecalho + '\n')
+            for linha in linhas:
+                # Processando a linha antes
+                contador_item = 0
+                while contador_item < len(linha):
+                    if linha[contador_item] is None:
+                        linha[contador_item] = ''
+                    elif isinstance(linha[contador_item], float):
+                        linha[contador_item] = str(linha[contador_item])
+                    elif isinstance(linha[contador_item], int):
+                        linha[contador_item] = str(linha[contador_item])
+                    elif isinstance(linha[contador_item], bool):
+                        if linha[contador_item] is True:
+                            linha[contador_item] = 'V'
+                        else:
+                            linha[contador_item] = 'F'
+                    contador_item += 1
+                linha_str = ';'.join(linha)
+                # print(linha, file=arquivo, end='')
+                arquivo.write(linha_str + '\n')
+                contador_linha += 1
+        print(f'{contador_linha} linhas escritas no arquivo {nome_arquivo}')
+
+
+class BDGeracaoMesUF(BD_Base):
     bd = dict()
     bd_mes = dict()
 
     def __init__(self):
-        pass
+        super(BDGeracaoMesUF, self).__init__()
 
     def add_record(self, record):
         self.add_record_geral(record)
@@ -126,10 +159,32 @@ class BDGeracaoMesUF:
         self.bd_mes[record.ano][record.mes]['total_capacidade'] += record.capacidade_usina
         self.bd_mes[record.ano][record.mes]['total_geracao_centro_gravidade'] += record.geracao_centro_gravidade
 
-    def exporta_ano_mes(self):
-        pass
+    def exporta_tudo(self):
+        arquivo_ano_mes = f"..{os.sep}csv's{os.sep}geracao_ccee_ano_mes.csv"
+        if os.path.exists(arquivo_ano_mes):
+            os.remove(arquivo_ano_mes)
+        self.exporta_ano_mes(arquivo_ano_mes)
 
-    def exporta_ano_mes_uf(self):
+        arquivo_ano_mes_uf = f"..{os.sep}csv's{os.sep}geracao_ccee_ano_mes_uf.csv"
+        if os.path.exists(arquivo_ano_mes_uf):
+            os.remove(arquivo_ano_mes_uf)
+        self.exporta_ano_mes_uf(arquivo_ano_mes_uf)
+
+    def exporta_ano_mes(self, nome_arquivo):
+        registros = []
+        cabecalho = ['data', 'total_pago', 'total_recebido', 'total_energia_entregue',
+                     'total_energia_recebida', 'total_capacidade', 'total_geracao_centro_gravidade']
+        for ano in self.bd_mes.keys():
+            for mes in self.bd_mes[ano].keys():
+                info = self.bd_mes[ano][mes]
+                dt = datetime(int(ano), int(mes), 1, 0, 0, 0).date()
+                registro = [dt.strftime('%Y-%m-%d'), info['total_pago'], info['total_recebido'],
+                            info['total_energia_entregue'], info['total_energia_recebida'],
+                            info['total_capacidade'], info['total_geracao_centro_gravidade']]
+                registros.append(registro)
+        self.exporta(cabecalho, registros, nome_arquivo)
+
+    def exporta_ano_mes_uf(self, nome_arquivo):
         registros = []
         cabecalho = ['data', 'uf', 'total_pago', 'total_recebido', 'total_energia_entregue',
                      'total_energia_recebida', 'total_capacidade', 'total_geracao_centro_gravidade']
@@ -142,42 +197,15 @@ class BDGeracaoMesUF:
                                 info['total_energia_entregue'], info['total_energia_recebida'],
                                 info['total_capacidade'], info['total_geracao_centro_gravidade']]
                     registros.append(registro)
-
-        nome_arquivo = 'ano_mes_uf.csv'
-        contador_linha = 0
-        with open(nome_arquivo, 'w') as arquivo:
-            linha_cabecalho = ';'.join(cabecalho)
-            # print(linha_cabecalho, file=arquivo, end='')
-            arquivo.write(linha_cabecalho + '\n')
-            for linha in registros:
-                # Processando a linha antes
-                contador_item = 0
-                while contador_item < len(linha):
-                    if linha[contador_item] is None:
-                        linha[contador_item] = ''
-                    elif isinstance(linha[contador_item], float):
-                        linha[contador_item] = str(linha[contador_item])
-                    elif isinstance(linha[contador_item], int):
-                        linha[contador_item] = str(linha[contador_item])
-                    elif isinstance(linha[contador_item], bool):
-                        if linha[contador_item] is True:
-                            linha[contador_item] = 'V'
-                        else:
-                            linha[contador_item] = 'F'
-                    contador_item += 1
-                linha_str = ';'.join(linha)
-                # print(linha, file=arquivo, end='')
-                arquivo.write(linha_str + '\n')
-                contador_linha += 1
-        print(f'{contador_linha} linhas escritas no arquivo {nome_arquivo}')
+        self.exporta(cabecalho, registros, nome_arquivo)
 
 
-class BDGeracaoFonteEnergeticaMesUF:
+class BDGeracaoFonteEnergeticaMesUF(BD_Base):
     bd = dict()
     bd_fonte_energetica = dict()
 
     def __init__(self):
-        pass
+        super(BDGeracaoFonteEnergeticaMesUF, self).__init__()
 
     def add_record(self, record):
         self.add_record_geral(record)
@@ -202,13 +230,17 @@ class BDGeracaoFonteEnergeticaMesUF:
             }
 
         if record.razao_social not in self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['empresas_distintas']:
-            self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['empresas_distintas'].append(record.razao_social)
+            self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['empresas_distintas']\
+                .append(record.razao_social)
         self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['total_pago'] += record.pagamento_mre
         self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['total_recebido'] += record.recebimento_mre
-        self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['total_energia_entregue'] += record.energia_entregue_ao_mre
-        self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['total_energia_recebida'] += record.energia_recebida_mre
+        self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['total_energia_entregue'] \
+            += record.energia_entregue_ao_mre
+        self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['total_energia_recebida'] \
+            += record.energia_recebida_mre
         self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['total_capacidade'] += record.capacidade_usina
-        self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['total_geracao_centro_gravidade'] += record.geracao_centro_gravidade
+        self.bd[record.ano][record.mes][record.uf][record.fonte_energia]['total_geracao_centro_gravidade'] \
+            += record.geracao_centro_gravidade
 
     def add_record_fonte_energetica(self, record):
         if record.ano  not in self.bd_fonte_energetica:
@@ -227,9 +259,33 @@ class BDGeracaoFonteEnergeticaMesUF:
             }
 
         if record.razao_social not in self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['empresas_distintas']:
-            self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['empresas_distintas'].append(record.razao_social)
+            self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['empresas_distintas']\
+                .append(record.razao_social)
 
-    def exporta_ano_mes_uf_fonte_energia(self):
+        self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['total_pago'] += record.pagamento_mre
+        self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['total_recebido'] \
+            += record.recebimento_mre
+        self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['total_energia_entregue'] \
+            += record.energia_entregue_ao_mre
+        self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['total_energia_recebida'] \
+            += record.energia_recebida_mre
+        self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['total_capacidade'] \
+            += record.capacidade_usina
+        self.bd_fonte_energetica[record.ano][record.mes][record.fonte_energia]['total_geracao_centro_gravidade'] \
+            += record.geracao_centro_gravidade
+
+    def exporta_tudo(self):
+        arquivo_ano_mes_uf_fonte = f"..{os.sep}csv's{os.sep}geracao_ccee_ano_mes_uf_fonte.csv"
+        if os.path.exists(arquivo_ano_mes_uf_fonte):
+            os.remove(arquivo_ano_mes_uf_fonte)
+        self.exporta_ano_mes_uf_fonte_energia(arquivo_ano_mes_uf_fonte)
+
+        arquivo_ano_mes_fonte = f"..{os.sep}csv's{os.sep}geracao_ccee_ano_mes_fonte.csv"
+        if os.path.exists(arquivo_ano_mes_fonte):
+            os.remove(arquivo_ano_mes_fonte)
+        self.exporta_ano_mes_fonte_energia(arquivo_ano_mes_fonte)
+
+    def exporta_ano_mes_uf_fonte_energia(self, nome_arquivo):
         registros = []
         cabecalho = ['data', 'uf', 'fonte_energia', 'total_pago', 'total_recebido',
                      'total_energia_entregue', 'total_energia_recebida', 'total_capacidade',
@@ -246,36 +302,9 @@ class BDGeracaoFonteEnergeticaMesUF:
                                     info['total_energia_entregue'], info['total_energia_recebida'],
                                     info['total_capacidade'], info['total_geracao_centro_gravidade']]
                         registros.append(registro)
+        self.exporta(cabecalho, registros, nome_arquivo)
 
-        nome_arquivo = 'ano_mes_uf_fonte.csv'
-        contador_linha = 0
-        with open(nome_arquivo, 'w') as arquivo:
-            linha_cabecalho = ';'.join(cabecalho)
-            # print(linha_cabecalho, file=arquivo, end='')
-            arquivo.write(linha_cabecalho + '\n')
-            for linha in registros:
-                # Processando a linha antes
-                contador_item = 0
-                while contador_item < len(linha):
-                    if linha[contador_item] is None:
-                        linha[contador_item] = ''
-                    elif isinstance(linha[contador_item], float):
-                        linha[contador_item] = str(linha[contador_item])
-                    elif isinstance(linha[contador_item], int):
-                        linha[contador_item] = str(linha[contador_item])
-                    elif isinstance(linha[contador_item], bool):
-                        if linha[contador_item] is True:
-                            linha[contador_item] = 'V'
-                        else:
-                            linha[contador_item] = 'F'
-                    contador_item += 1
-                linha_str = ';'.join(linha)
-                # print(linha, file=arquivo, end='')
-                arquivo.write(linha_str + '\n')
-                contador_linha += 1
-        print(f'{contador_linha} linhas escritas no arquivo {nome_arquivo}')
-
-    def exporta_ano_mes_fonte_energia(self):
+    def exporta_ano_mes_fonte_energia(self, nome_arquivo):
         registros = []
         cabecalho = ['data', 'fonte_energia', 'total_pago', 'total_recebido',
                      'total_energia_entregue', 'total_energia_recebida', 'total_capacidade',
@@ -291,42 +320,15 @@ class BDGeracaoFonteEnergeticaMesUF:
                                 info['total_energia_entregue'], info['total_energia_recebida'],
                                 info['total_capacidade'], info['total_geracao_centro_gravidade']]
                     registros.append(registro)
-
-        nome_arquivo = 'ano_mes_fonte.csv'
-        contador_linha = 0
-        with open(nome_arquivo, 'w') as arquivo:
-            linha_cabecalho = ';'.join(cabecalho)
-            # print(linha_cabecalho, file=arquivo, end='')
-            arquivo.write(linha_cabecalho + '\n')
-            for linha in registros:
-                # Processando a linha antes
-                contador_item = 0
-                while contador_item < len(linha):
-                    if linha[contador_item] is None:
-                        linha[contador_item] = ''
-                    elif isinstance(linha[contador_item], float):
-                        linha[contador_item] = str(linha[contador_item])
-                    elif isinstance(linha[contador_item], int):
-                        linha[contador_item] = str(linha[contador_item])
-                    elif isinstance(linha[contador_item], bool):
-                        if linha[contador_item] is True:
-                            linha[contador_item] = 'V'
-                        else:
-                            linha[contador_item] = 'F'
-                    contador_item += 1
-                linha_str = ';'.join(linha)
-                # print(linha, file=arquivo, end='')
-                arquivo.write(linha_str + '\n')
-                contador_linha += 1
-        print(f'{contador_linha} linhas escritas no arquivo {nome_arquivo}')
+        self.exporta(cabecalho, registros, nome_arquivo)
 
 
-class BDGeracaoEmpresaMes:
+class BDGeracaoEmpresaMes(BD_Base):
     bd = dict()
     bd_empresa = dict()
 
     def __init__(self):
-        pass
+        super(BDGeracaoEmpresaMes, self).__init__()
 
     def add_record(self, record):
         self.add_record_geral(record)
@@ -338,27 +340,21 @@ class BDGeracaoEmpresaMes:
     def add_record_empresa(self, record):
         pass
 
+    def exporta_tudo(self):
+        arquivo_empresa_mes = f"..{os.sep}csv's{os.sep}geracao_ccee_empresa_mes.csv"
+        if os.path.exists(arquivo_empresa_mes):
+            os.remove(arquivo_empresa_mes)
+        self.exporta_ano_mes_empresa(arquivo_empresa_mes)
 
-class BDGeracaoEmpresaMesUF:
-    bd = dict()
-    bd_empresa = dict()
-    bd_empresa_mes = dict()
+        arquivo_empresa_mes_uf = f"{os.sep}csv's{os.sep}geracao_ccee_empresa_mes_uf.csv"
+        if os.path.exists(arquivo_empresa_mes_uf):
+            os.remove(arquivo_empresa_mes_uf)
+        self.exporta_ano_mes_uf_empresa(arquivo_empresa_mes_uf)
 
-    def __init__(self):
+    def exporta_ano_mes_uf_empresa(self, nome_arquivo):
         pass
 
-    def add_record(self, record):
-        self.add_record_geral(record)
-        self.add_record_empresa(record)
-        self.add_record_empresa_mes(record)
-
-    def add_record_geral(self, record):
-        pass
-
-    def add_record_empresa(self, record):
-        pass
-
-    def add_record_empresa_mes(self, record):
+    def exporta_ano_mes_empresa(self, nome_arquivo):
         pass
 
 
@@ -367,20 +363,22 @@ class BD:
     bd_geracao_mes_uf = None
     bd_geracao_fonte_energetica_mes_uf = None
     bd_geracao_empresa_mes = None
-    bd_geracao_empresa_mes_uf = None
 
     def __init__(self):
         self.bd_geracao_mes_uf = BDGeracaoMesUF()
         self.bd_geracao_fonte_energetica_mes_uf = BDGeracaoFonteEnergeticaMesUF()
         self.bd_geracao_empresa_mes = BDGeracaoEmpresaMes()
-        self.bd_geracao_empresa_mes_uf = BDGeracaoEmpresaMesUF()
 
     def add_record(self, record):
         self.todos_registros.append(record)
         self.bd_geracao_mes_uf.add_record(record)
         self.bd_geracao_fonte_energetica_mes_uf.add_record(record)
         self.bd_geracao_empresa_mes.add_record(record)
-        self.bd_geracao_empresa_mes_uf.add_record(record)
+
+    def exporta_tudo(self):
+        self.bd_geracao_mes_uf.exporta_tudo()
+        self.bd_geracao_fonte_energetica_mes_uf.exporta_tudo()
+        self.bd_geracao_empresa_mes.exporta_tudo()
 
 
 class ProcessaDadosGeracaoCCEE:
@@ -389,7 +387,7 @@ class ProcessaDadosGeracaoCCEE:
     def __init__(self, args=None):
         self.args = args
         self.pasta_dados = self.args.pasta_dados \
-            if self.args is not None and self.args.data_directory is not None \
+            if self.args is not None and self.args.pasta_dados is not None \
             else f'..{os.sep}dados_ccee{os.sep}dados_consolidados'
         self.bd = BD()
 
@@ -438,19 +436,19 @@ class ProcessaDadosGeracaoCCEE:
         self.exporta()
 
     def exporta(self):
-        self.bd.bd_geracao_mes_uf.exporta_ano_mes_uf()
+        self.bd.exporta_tudo()
 
 
 if __name__ == '__main__':
     print('Iniciando.....')
 
     parser = argparse.ArgumentParser('Ingest CCEE')
-    parser.add_argument('-d', '--data-directory', dest='data_directory')
+    parser.add_argument('-d', '--data-directory', dest='pasta_dados')
     parser.add_argument('-v', '--version', dest='version')
     parser.add_argument('-vv', '--verbose', action='store_false', dest='verbose')
     args = parser.parse_args()
 
-    processador = ProcessaDadosGeracaoCCEE()
+    processador = ProcessaDadosGeracaoCCEE(args)
     try:
         processador.executa()
     except KeyboardInterrupt:
