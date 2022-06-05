@@ -1,4 +1,5 @@
 SET @@global.sql_mode= '';
+SET @@local.net_read_timeout=360;
 
 create database if not exists puc_projeto;
 use puc_projeto;
@@ -83,7 +84,7 @@ CREATE TABLE consumo (
 ;
 LOAD DATA INFILE 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\consumo.csv'
 INTO TABLE consumo
-FIELDS TERMINATED BY ';'   
+FIELDS TERMINATED BY ','   
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS 
