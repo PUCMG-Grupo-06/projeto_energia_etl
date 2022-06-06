@@ -79,7 +79,7 @@ SET mes = STR_TO_DATE(@mes, '%Y-%m-%d');
 CREATE TABLE consumo (
     `uf` varchar(2),
     `mes` date,
-    `consumo` double
+    `consumo` numeric(14,6)
 ) ENGINE=INNODB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci
 ;
 LOAD DATA INFILE 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\consumo.csv'
