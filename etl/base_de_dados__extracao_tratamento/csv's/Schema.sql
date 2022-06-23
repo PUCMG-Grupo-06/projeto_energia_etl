@@ -1,4 +1,5 @@
 SET @@global.sql_mode= '';
+SET @@local.net_read_timeout=360;
 
 create database if not exists puc_projeto;
 use puc_projeto;
@@ -78,12 +79,12 @@ SET mes = STR_TO_DATE(@mes, '%Y-%m-%d');
 CREATE TABLE consumo (
     `uf` varchar(2),
     `mes` date,
-    `consumo` double
+    `consumo` numeric(14,6)
 ) ENGINE=INNODB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci
 ;
 LOAD DATA INFILE 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\consumo.csv'
 INTO TABLE consumo
-FIELDS TERMINATED BY ';'   
+FIELDS TERMINATED BY ','   
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS 
@@ -113,24 +114,26 @@ SET mes = STR_TO_DATE(@mes, '%Y-%m-%d');
 
 /* CRIA TABELA geração E CARREGA DADOS NELA ----------------------------------------------------------------------------- */
 
+
 CREATE TABLE `geracao` (
   `mes` DATE,
-  `uf` varchar(20),
-  `total_pago` int,
-  `total_recebido` int,
-  `total_energia_entregue` int,
-  `total_energia_recebida` int,
-  `total_capacidade` int,
-  `geracao_total_MWmed` int
+  `uf` varchar(2),
+  `fonte_energia` varchar(50),
+  `total_pago` double,
+  `total_recebido` double,
+  `total_energia_entregue` double,
+  `total_energia_recebida` double,
+  `total_capacidade` double,
+  `total_geracao_centro_gravidade` numeric(20,2)
   );
   
 LOAD DATA INFILE 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\geracao.csv'
 INTO TABLE geracao
-FIELDS TERMINATED BY ','   
+FIELDS TERMINATED BY ';'   
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS 
-(@mes,uf,total_pago,total_recebido,total_energia_entregue,total_energia_recebida,total_capacidade,geracao_total_MWmed) 
+(@mes,uf,fonte_energia,total_pago,total_recebido,total_energia_entregue,total_energia_recebida,total_capacidade,total_geracao_centro_gravidade) 
 SET mes = STR_TO_DATE(@mes, '%Y-%m-%d');
 
 /* CRIA TABELA DE MESES -------------------------------------------------------------------------------------------------------*/
