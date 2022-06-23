@@ -275,19 +275,14 @@ class BDGeracaoFonteEnergeticaMesUF(BD_Base):
             += record.geracao_centro_gravidade
 
     def exporta_tudo(self):
-        arquivo_ano_mes_uf_fonte = f"..{os.sep}csv's{os.sep}geracao_ccee_ano_mes_uf_fonte.csv"
+        arquivo_ano_mes_uf_fonte = f"..{os.sep}csv's{os.sep}geracao.csv"
         if os.path.exists(arquivo_ano_mes_uf_fonte):
             os.remove(arquivo_ano_mes_uf_fonte)
         self.exporta_ano_mes_uf_fonte_energia(arquivo_ano_mes_uf_fonte)
 
-        arquivo_ano_mes_fonte = f"..{os.sep}csv's{os.sep}geracao_ccee_ano_mes_fonte.csv"
-        if os.path.exists(arquivo_ano_mes_fonte):
-            os.remove(arquivo_ano_mes_fonte)
-        self.exporta_ano_mes_fonte_energia(arquivo_ano_mes_fonte)
-
     def exporta_ano_mes_uf_fonte_energia(self, nome_arquivo):
         registros = []
-        cabecalho = ['data', 'uf', 'fonte_energia', 'total_pago', 'total_recebido',
+        cabecalho = ['mes', 'uf', 'fonte_energia', 'total_pago', 'total_recebido',
                      'total_energia_entregue', 'total_energia_recebida', 'total_capacidade',
                      'total_geracao_centro_gravidade']
 
@@ -300,13 +295,14 @@ class BDGeracaoFonteEnergeticaMesUF(BD_Base):
                         registro = [dt.strftime('%Y-%m-%d'), uf, fonte_energia,
                                     info['total_pago'], info['total_recebido'],
                                     info['total_energia_entregue'], info['total_energia_recebida'],
-                                    info['total_capacidade'], info['total_geracao_centro_gravidade']]
+                                    info['total_capacidade'],
+                                    int(info['total_geracao_centro_gravidade']) * 720]
                         registros.append(registro)
         self.exporta(cabecalho, registros, nome_arquivo)
 
     def exporta_ano_mes_fonte_energia(self, nome_arquivo):
         registros = []
-        cabecalho = ['data', 'fonte_energia', 'total_pago', 'total_recebido',
+        cabecalho = ['mes', 'fonte_energia', 'total_pago', 'total_recebido',
                      'total_energia_entregue', 'total_energia_recebida', 'total_capacidade',
                      'total_geracao_centro_gravidade']
 
@@ -318,7 +314,8 @@ class BDGeracaoFonteEnergeticaMesUF(BD_Base):
                     registro = [dt.strftime('%Y-%m-%d'), fonte_energia, info['total_pago'],
                                 info['total_recebido'],
                                 info['total_energia_entregue'], info['total_energia_recebida'],
-                                info['total_capacidade'], info['total_geracao_centro_gravidade']]
+                                info['total_capacidade'],
+                                int(info['total_geracao_centro_gravidade']) * 720]
                     registros.append(registro)
         self.exporta(cabecalho, registros, nome_arquivo)
 
@@ -376,9 +373,7 @@ class BD:
         self.bd_geracao_empresa_mes.add_record(record)
 
     def exporta_tudo(self):
-        self.bd_geracao_mes_uf.exporta_tudo()
         self.bd_geracao_fonte_energetica_mes_uf.exporta_tudo()
-        self.bd_geracao_empresa_mes.exporta_tudo()
 
 
 class ProcessaDadosGeracaoCCEE:
