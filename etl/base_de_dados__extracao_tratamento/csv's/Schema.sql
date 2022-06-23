@@ -198,7 +198,3 @@ ADD CONSTRAINT FK_Consumo_Regiao FOREIGN KEY (uf) REFERENCES Regiao(uf);
 
 ALTER TABLE Carga_Media
 ADD CONSTRAINT FK_CargaMedia_Mes FOREIGN KEY (mes) REFERENCES Meses(mes);
-
-/* CORREÇOES - Modificar no sarquivo original depois ------------------------------------------------------------------------------------------*/
-
-UPDATE geracao SET total_geracao_centro_gravidade = total_geracao_centro_gravidade * 720;
