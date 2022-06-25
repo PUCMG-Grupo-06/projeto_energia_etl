@@ -447,6 +447,8 @@ if __name__ == '__main__':
     try:
         processador.executa()
     except KeyboardInterrupt:
-        pass
+        print('Interrupção pelo teclado')
     except SystemExit:
-        pass
+        print('Encerrando por saída do sistema')
+    except Exception as exc:
+        print(f'Saindo pelo seguinte erro: {exc}')
