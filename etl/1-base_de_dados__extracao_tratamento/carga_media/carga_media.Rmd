@@ -1,0 +1,127 @@
+---
+title: "Carga elética média pelo tempo e subsistema"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  word_document: default
+---
+
+#### 1 - Carregar os pacotes que serão utilizados:
+
+```{r message=FALSE, warning=FALSE}
+
+library(dplyr)
+library(skimr)
+library(base)
+library(utils)
+library(readr)
+library(lubridate)
+
+```
+
+
+#### 2 - Carregar todos os arquivos de cada ano separado e concatena-los em um único Data Frame:
+
+```{r}
+
+carga_media_diaria <- list.files(path = "C:\\Users\\Sanderson\\Documents\\RStudio\\Projeto\\carga_media",pattern = "*.csv", full.names = TRUE ) %>% 
+  lapply(read.csv2) %>% bind_rows()
+
+```
+
+
+#### 3 - Analisar o tipo dos dados de cada coluna:
+
+```{r}
+
+str(carga_media_diaria)
+
+```
+
+#### 4- Alterar o tipo das colunas (*din_instante* para data e *val_cargaenergiamwmed* para número):
+
+```{r}
+carga_media_diaria$val_cargaenergiamwmed <- as.numeric(carga_media_diaria$val_cargaenergiamwmed)
+carga_media_diaria$din_instante <- as.Date(carga_media_diaria$din_instante)
+```
+
+
+#### 5 - Transformar todos os valores referentes aos dias em 01:
+
+```{r}
+
+# Para facilitar o agrupamento os dias serão simplificados. o mês irá conter varios dias 01
+
+carga_media_diaria$din_instante <- make_date(year = year(carga_media_diaria$din_instante),month = month(carga_media_diaria$din_instante),day = 01)
+
+```
+
+
+#### 6 - Fazer a média dos valores em val(val_cargaenergiamwmed) e agrupar as outras colunas (id_subsistema, nom_subsistema,din_instante) para converter em carga media mensal:
+
+```{r}
+
+carga_media <- carga_media_diaria %>% group_by(id_subsistema,nom_subsistema,din_instante) %>% summarize(mean(val_cargaenergiamwmed))
+
+```
+
+#### 7 - remover coluna duplicada (is_subsistema = nom_subsistema):
+
+```{r}
+carga_media <- subset(carga_media, select = c(id_subsistema,din_instante, `mean(val_cargaenergiamwmed)`))
+```
+
+
+#### 8 - Alterar nomes das colunas:  nom_subsistema = subsistema ,din_instante = mes e mean(val_cargaenergiamwmed) = carga_mensal_MWmed
+
+```{r}
+
+carga_media <- carga_media %>% rename(subsistema = id_subsistema, mes = din_instante, carga_mensal_MWmed = `mean(val_cargaenergiamwmed)`)
+
+```
+
+#### 9 - Na coluna "subsistema" o elemento SE (Sudeste)  engloba também o centro-oeste, então onde tiver somente SE trocaremos por SE/CO:
+
+```{r}
+
+carga_media["subsistema"][carga_media["subsistema"] == "SE"] <- "SE/CO"
+
+```
+
+
+#### 10 - Analisar o comportamento dos dados contidos no data frame e buscar por dados em banco:
+
+```{r}
+
+skim(carga_media)
+
+```
+
+
+#### 11 - Eliminar todas as linhas sem dados:
+
+```{r}
+
+carga_media <- na.omit(carga_media)
+
+```
+
+
+#### 12 - truncar os itens da coluna "val_cargaenergiamwmed" para somente 3 casas decimais:
+
+```{r}
+
+carga_media$carga_mensal_MWmed <- round(carga_media$carga_mensal_MWmed, digits = 3)
+
+```
+
+
+#### 13 - Exportar CSV:
+
+```{r}
+write_csv(carga_media, file = "carga_media.csv")
+```
+
+
+###### Dados fornecidos pelo Operador Nacional dos Sistema Eletrico (ONS) -  Acesso em: 28/04/2022
