@@ -1,11 +1,11 @@
 from .ingestao import (
-	BD,
 	BDGeracaoFonteEnergeticaMesUF,
+	ModeloGeracaoCCEE,
 	ProcessaDadosGeracaoCCEE)
 
 
 __all__ = [
-	'BD',
 	'BDGeracaoFonteEnergiaMesUF',
+	'ModeloGeracaoCCEE',
 	'ProcessaDadosGeracaoCCEE'
 ]
